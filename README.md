@@ -5,7 +5,7 @@
 # 使用
 
 ```bash
-go get -u github.com/TMaize/scf-apigw-wrap
+go get -u github.com/TMaize/scf-apigw-wrap@v1.0.0
 ```
 
 ```go
@@ -19,6 +19,6 @@ func Event(req events.APIGatewayRequest) (events.APIGatewayResponse, error) {
   // 网关配置的前缀为 req.Context.Path
   // 根据需求转化自己http服务的请求路径
   innerUrl := "/" + req.Path[len(req.Context.Path):]
-  return Wrap.wrap(req, innerUrl, Engine)
+  return Wrap.wrap(req, innerUrl, Engine), nil
 }
 ```
