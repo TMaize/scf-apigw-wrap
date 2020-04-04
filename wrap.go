@@ -11,6 +11,7 @@ import (
 var textTypes = []string{"text/", "javascript", "json"}
 
 // Wrap 请求包装+委托模拟http请求
+// https://cloud.tencent.com/document/product/583/12513
 // pathname 为请求路径，由于环境的原因，
 func Wrap(event events.APIGatewayRequest, pathname string, h http.Handler) events.APIGatewayResponse {
 

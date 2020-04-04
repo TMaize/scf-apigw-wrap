@@ -13,7 +13,7 @@ import wrap "github.com/TMaize/scf-apigw-wrap"
 ```
 
 ```go
-func Event(req events.APIGatewayRequest) (events.APIGatewayResponse, error) {
+func Event(req events.APIGatewayRequest) (interface{}, error) {
   // 实际路径 /{req.Context.Stage}/{req.Path}
   // 传入的路径 /{req.Path}
   // 网关配置的前缀为 req.Context.Path
