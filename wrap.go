@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var textTypes = []string{"text/", "javascript", "json"}
+var textTypes = []string{"text/", "javascript", "json", "/xml"}
 
 // Wrap 请求包装+委托模拟http请求
 // https://cloud.tencent.com/document/product/583/12513

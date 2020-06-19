@@ -5,7 +5,7 @@
 # 使用
 
 ```bash
-go get -u github.com/TMaize/scf-apigw-wrap@v1.0.1
+go get -u github.com/TMaize/scf-apigw-wrap@v1.0.3
 ```
 
 ```go
