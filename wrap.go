@@ -10,6 +10,10 @@ import (
 
 var textTypes = []string{"text/", "javascript", "json", "/xml"}
 
+func isNoContentTypeCode(code int) bool {
+	return code == 204 || code == 304 || code == 401
+}
+
 // Wrap 请求包装+委托模拟http请求
 // https://cloud.tencent.com/document/product/583/12513
 // pathname 为请求路径，由于环境的原因，
@@ -45,19 +49,26 @@ func Wrap(event events.APIGatewayRequest, pathname string, h http.Handler) event
 		gwResp.Headers[k] = response.Header().Get(k)
 	}
 
+	// 对于没有Content-Type的，全部按照二进制处理
+	_, ok := gwResp.Headers["Content-Type"]
+	if !ok && !isNoContentTypeCode(gwResp.StatusCode) {
+		gwResp.Headers["Content-Type"] = "application/octet-stream"
+	}
+
 	// 判断是否需要对body编码
 	bodyBase64 := true
-	contentType, ok := gwResp.Headers["Content-Type"]
-	if !ok {
-		contentType = "application/octet-stream"
-		gwResp.Headers["Content-Type"] = contentType
-	}
-	for _, v := range textTypes {
-		if strings.Contains(contentType, v) {
-			bodyBase64 = false
-			break
+	contentType := gwResp.Headers["Content-Type"]
+	if contentType == "contentType" {
+		bodyBase64 = false
+	} else {
+		for _, v := range textTypes {
+			if strings.Contains(contentType, v) {
+				bodyBase64 = false
+				break
+			}
 		}
 	}
+
 	gwResp.IsBase64Encoded = bodyBase64
 
 	if bodyBase64 {
