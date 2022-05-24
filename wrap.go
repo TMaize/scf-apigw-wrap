@@ -1,8 +1,9 @@
 package scf_apigw_wrap
 
 import (
+	"bytes"
 	"encoding/base64"
-	"github.com/tencentyun/scf-go-lib/events"
+	"github.com/TMaize/scf-apigw-wrap/model"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,20 +18,33 @@ func isNoContentTypeCode(code int) bool {
 // Wrap 请求包装+委托模拟http请求
 // https://cloud.tencent.com/document/product/583/12513
 // pathname 为请求路径，由于环境的原因，
-func Wrap(event events.APIGatewayRequest, pathname string, h http.Handler) events.APIGatewayResponse {
+func Wrap(event map[string]interface{}, pathname string, h http.Handler) model.Response {
 
-	requestBody := strings.NewReader(event.Body)
-	request := httptest.NewRequest(event.Method, pathname, requestBody)
+	gwRequest, err := model.GetRequest(event)
+	if err != nil {
+		return model.Response{
+			StatusCode:      500,
+			IsBase64Encoded: false,
+			Body:            "parse event fail",
+			Headers: map[string]string{
+				"Content-Type": "text/plain",
+			},
+		}
+	}
+
+	//requestBody := strings.NewReader(event.Body)
+	requestBody := bytes.NewReader(gwRequest.Body)
+	request := httptest.NewRequest(gwRequest.HTTPMethod, pathname, requestBody)
 
 	requestQuery := request.URL.Query()
-	for k, arr := range event.QueryString {
+	for k, arr := range gwRequest.QueryString {
 		for _, v := range arr {
 			requestQuery.Add(k, v)
 		}
 	}
 	request.URL.RawQuery = requestQuery.Encode()
 
-	for k, v := range event.Headers {
+	for k, v := range gwRequest.Headers {
 		request.Header.Set(k, v)
 	}
 
@@ -39,8 +53,7 @@ func Wrap(event events.APIGatewayRequest, pathname string, h http.Handler) event
 	// 模拟请求
 	h.ServeHTTP(response, request)
 
-	// 转换为APIGatewayResponse
-	gwResp := events.APIGatewayResponse{
+	gwResp := model.Response{
 		StatusCode: response.Code,
 		Headers:    map[string]string{},
 	}
