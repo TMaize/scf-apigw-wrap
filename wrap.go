@@ -44,8 +44,10 @@ func Wrap(event map[string]interface{}, pathname string, h http.Handler) model.R
 	}
 	request.URL.RawQuery = requestQuery.Encode()
 
-	for k, v := range gwRequest.Headers {
-		request.Header.Set(k, v)
+	for k, arr := range gwRequest.Headers {
+		for _, v := range arr {
+			request.Header.Add(k, v)
+		}
 	}
 
 	response := httptest.NewRecorder()
