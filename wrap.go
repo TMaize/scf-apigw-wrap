@@ -15,26 +15,8 @@ func isNoContentTypeCode(code int) bool {
 	return code == 204 || code == 304 || code == 401
 }
 
-// Wrap 请求包装+委托模拟http请求
-// https://cloud.tencent.com/document/product/583/12513
-// pathname 为请求路径，由于环境的原因，
-func Wrap(event map[string]interface{}, pathname string, h http.Handler) model.Response {
-
-	gwRequest, err := model.GetRequest(event)
-	if err != nil {
-		return model.Response{
-			StatusCode:      500,
-			IsBase64Encoded: false,
-			Body:            "parse event fail",
-			Headers: map[string]string{
-				"Content-Type": "text/plain",
-			},
-		}
-	}
-
-	//requestBody := strings.NewReader(event.Body)
-	requestBody := bytes.NewReader(gwRequest.Body)
-	request := httptest.NewRequest(gwRequest.HTTPMethod, pathname, requestBody)
+func WrapRequest(gwRequest model.Request, requestPath string, h http.Handler) model.Response {
+	request := httptest.NewRequest(gwRequest.HTTPMethod, requestPath, bytes.NewReader(gwRequest.Body))
 
 	requestQuery := request.URL.Query()
 	for k, arr := range gwRequest.QueryString {
@@ -93,4 +75,22 @@ func Wrap(event map[string]interface{}, pathname string, h http.Handler) model.R
 	}
 
 	return gwResp
+}
+
+// Wrap 执行HTTP触发器请求体
+// https://cloud.tencent.com/document/product/583/12513
+func Wrap(event map[string]interface{}, requestPath string, handler http.Handler) model.Response {
+	request, err := model.GetRequest(event)
+
+	if err != nil {
+		return model.Response{
+			StatusCode:      500,
+			IsBase64Encoded: false,
+			Body:            "parse event fail",
+			Headers: map[string]string{
+				"Content-Type": "text/plain",
+			},
+		}
+	}
+	return WrapRequest(request, requestPath, handler)
 }
